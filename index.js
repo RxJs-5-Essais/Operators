@@ -1,5 +1,4 @@
 let fMain=function() {
-     oTests1.init();
 
      oTests1.range();
      oTests1.of();
@@ -15,18 +14,50 @@ let fMain=function() {
      oTests1.create();
      oTests1.every();
      oTests1.distinctUntilChanged();
-     oTests1.defaultEmpty();
+     oTests1.defaultIfEmpty();
+     console.log('\n\n\n\n\n\n');
+
+
+//     oTests2.delay(); //ASYNCHRONE
+//     oTests2.delayWhen(); //ASYNCHRONE
+     oTests2.take();
+     oTests2.takeWhile();
+     oTests2.takeUntil();
+     oTests2.throw();
+     oTests2.skip();
+     oTests2.skipWhile();
+     oTests2.skipUntil();
+     oTests2.last();
+     oTests2.concat();
+     oTests2.concatAll();
+     oTests2.concatMap();
+     oTests2.concatMapTo();
+     oTests2.single();
+     oTests2.ignoreElements();
+     oTests2.sample();
+     oTests2.reduce();
+     oTests2.scan();
+     oTests2.groupBy();
+     oTests2.timeout();
+     oTests2.merge();
+     oTests2.mergeAll(); 
+     oTests2.mergeMap();
+     oTests2.buffer();
+     oTests2.bufferCount();
+     oTests2.bufferTime();
+     oTests2.bufferToggle();
+     oTests2.bufferWhen();
+     oTests2.partition();
+     oTests2.throttle();
+     oTests2.throttleTime();
+     console.log('\n\n\n\n\n\n');     
 
 }
 
 //---------------------------------------
 
 const oTests1 = {
-    init() {
-        
-    },
 
-    //------------------------------
     range() { //Static operator
         console.log("\n\n", "*********************** Rx.Observable.range ***********************", "\n\n");
         const oObservable = Rx.Observable.range(1,5);
@@ -264,9 +295,183 @@ const oTests1 = {
         console.log('\n');         
     },        
     distinctUntilChanged() {
+        console.log("\n\n", "*********************** distinctUntilChanged ***********************", "\n\n");
+        const data = ["idemInfo", "idemInfo", "idemInfo", "newInfo", "idemInfo", "newInfo", "newInfo2", "newInfo2", "newInfo3"];
+        const oObservable = Rx.Observable.from(data);
+        oObservable //ATTENTION : en RxJs6, il faudra utiliser : oObservable.pipe( distinctUntilChanged(...) ).subscribe(...)
+        .distinctUntilChanged() //Ne considère l'élément du flux que s'il est différent du précédent <<<<<<<<<<<<<<<<
+        .subscribe((pData)=>{
+            console.log(pData);
+        });   
+        //Affichera(donc émettra) :  idemInfo newInfo idemInfo newInfo newInfo2 newInfo3 
+        console.log('\n\n');        
     },        
-    defaultEmpty() {
+    defaultIfEmpty() {
+        console.log("\n\n", "*********************** defaultIfEmpty ***********************", "\n\n");
+        //const data = [10, null, 78, undefined, 78, "", 22]; //<<<< Emettra toutes ces valeurs
+        const data = []; //<<<<< VIDE, émettra donc la valeur par défaut, signifiée ci-dessous.
+        const oObservable = Rx.Observable.from(data);
+        oObservable //ATTENTION : en RxJs6, il faudra utiliser : oObservable.pipe( defaultIfEmpty(...) ).subscribe(...)
+        .defaultIfEmpty(456) // Emettra cette valeur (1 fois), si la source de données (data) est TOTALEMENT vide.
+        .subscribe((pData)=>{
+            console.log(pData);
+        });   
+        //Affichera(donc émettra) :  456
+        console.log('\n\n');         
     }        
 }
 
 
+
+
+
+
+const oTests2 = {
+
+    delay() { //ASYNCHRONE
+        console.log("\n\n", "*********************** delay ***********************", "\n\n");
+        const data = [10,20,30];
+        const iDelay = 4000;
+        const oObservable = Rx.Observable.from(data);
+        oObservable //ATTENTION : en RxJs6, il faudra utiliser : oObservable.pipe( delay(...) ).subscribe(...)
+        .do((pData)=>{console.log('Waiting "in queue" ('+iDelay+'ms), for sending data: '+pData);})
+        
+        .delay(iDelay) //Bloque le passage de toutes données, durant la durée spécifiée !
+        
+        // Le flux est débloqué.
+
+        .do((pData)=>{console.log(pData+" has finally been emitted !");})
+        .subscribe((pData)=>{
+            console.log("Here it is received :"+pData+ " !!");
+        });   
+        //Affichera(donc émettra) :   10 20 30,   mais n'émettra en sortie de flux, le 1er (10), qu'après un DELAI de 4000ms.
+        console.log('\n\n');         
+    },
+    
+    delayWhen() { //ASYNCHRONE
+        console.log("\n\n", "*********************** delayWhen ***********************", "\n\n");
+
+        const iDelay = 4000;
+        const oObservableAutre = Rx.Observable.create((poObserver)=>{
+            window.setTimeout(()=>{
+                //poObserver.next();
+                //poObserver.error();
+                poObserver.complete();
+            }, iDelay);
+        });
+
+        const data = [10,20,30];
+        const oObservable = Rx.Observable.from(data);
+        oObservable //ATTENTION : en RxJs6, il faudra utiliser : oObservable.pipe( delay(...) ).subscribe(...)
+        .do((pData)=>{console.log('Waiting "in queue" ('+iDelay+'ms), for sending data: '+pData);})
+      
+        .delayWhen(()=>{return(oObservableAutre);}) //Bloque le passage de toutes données, tant que l'ObservableAutre n'a pas nexté !
+        
+        // Le flux est débloqué.
+
+        .do((pData)=>{console.log(pData+" has finally been emitted !");})
+        .subscribe((pData)=>{
+            console.log("Here it is received :"+pData+ " !!");
+        });   
+        //Affichera(donc émettra) :   10 20 30,   mais n'émettra en sortie de flux, le 1er (10), qu'après que ObservableAutre ait nexté.
+        console.log('\n\n');         
+    },
+    take() {
+        console.log("\n\n", "*********************** take ***********************", "\n\n");        
+        const data = [10,20,30,40,50];
+        const oObservable = Rx.Observable.from(data);
+        oObservable //ATTENTION : en RxJs6, il faudra utiliser : oObservable.pipe( take(...) ).subscribe(...)
+        .take(2)
+        .subscribe((pData)=>{
+            console.log(pData);
+        });   
+        //Affichera(donc émettra) :   10 20    QUE les iNbTreated premières valeurs.
+        console.log('\n\n');                 
+    },       
+    takeWhile() {
+        console.log("\n\n", "*********************** takeWhile ***********************", "\n\n");                
+        const data = [10,20,30,40,50,60];
+        const oObservable = Rx.Observable.from(data);
+        oObservable //ATTENTION : en RxJs6, il faudra utiliser : oObservable.pipe( takeWhile(...) ).subscribe(...)
+        .takeWhile( (pnData)=>{ return(pnData<50); } )
+        .subscribe((pData)=>{
+            console.log(pData);
+        });   
+        //Affichera(donc émettra) :   10 20 30 40   TANT QUE la donnée est <50.
+        console.log('\n\n');        
+    },        
+    takeUntil() {
+        console.log("\n\n", "*********************** A REVOIR ... takeUntil ***********************", "\n\n");                
+
+        const fObservable = (poObserver) => {
+            window.setTimeout( ()=> {
+                poObserver.complete();
+            }, 2);
+        }
+
+        const data = [10,20,30,40,50];
+        const oObservable = Rx.Observable.from(data);
+        oObservable //ATTENTION : en RxJs6, il faudra utiliser : oObservable.pipe( takeWhile(...) ).subscribe(...)
+        .takeUntil( ()=>{ return(RxObservable.create(fObservable)); } )
+        .subscribe((pData)=>{
+            console.log(pData);
+        });   
+        //Affichera(donc émettra) :   10 20    QUE les iNbTreated premières valeurs.
+        console.log('\n\n');            
+    },       
+    throw() {
+    },       
+    skip() {
+    },       
+    skipWhile() {
+    },       
+    skipUntil() {
+    },        
+    last() {
+    },        
+    concat() {
+    },        
+    concatAll() {
+    },        
+    concatMap() {
+    },        
+    concatMapTo() {
+    },        
+    single() {
+    },        
+    ignoreElements() {
+    },        
+    sample() {
+    },        
+    reduce() {
+    },        
+    scan() {
+    },        
+    groupBy() {
+    },        
+    timeout() {
+    },        
+    merge() {
+    },        
+    mergeAll() { 
+    },        
+    mergeMap() {
+    },        
+    buffer() {
+    },        
+    bufferCount() {
+    },        
+    bufferTime() {
+    },        
+    bufferToggle() {
+    },        
+    bufferWhen() {
+    },        
+    partition() {
+    },        
+    throttle() {
+    },        
+    throttleTime() {
+    }        
+
+}
