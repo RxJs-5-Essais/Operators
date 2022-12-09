@@ -278,8 +278,9 @@ const oTests1 = {
     },        
     every() {
         console.log("\n\n", "*********************** every ***********************", "\n\n");
-        //const dataToConvert = [10,400,-6,40,15];
-        const dataToConvert = [10,400,6,40,15];
+        let dataToConvert;
+        dataToConvert = [10,400,-6,40,15];
+        dataToConvert = [10,400,6,40,15];
         const oObservable = Rx.Observable.from(dataToConvert);
         oObservable //ATTENTION : en RxJs6, il faudra utiliser : oObservable.pipe( filter(...) ).subscribe(...)
         .do((pReceivedData)=>{console.log("Examen de la valeur "+pReceivedData+", du flux,")})
